@@ -1,4 +1,4 @@
-module github.com/danielgtaylor/openapi-cli-generator
+module github.com/ashutosh-mishra-nutanix/openapi-cli-generator
 
 go 1.12
 
