@@ -17,6 +17,9 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
+	
+	"net/http"
+	"crypto/tls"
 )
 
 //go:generate go-bindata ./templates/...
@@ -655,6 +658,7 @@ func generate(cmd *cobra.Command, args []string) {
 }
 
 func main() {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	root := &cobra.Command{}
 
 	root.AddCommand(&cobra.Command{
