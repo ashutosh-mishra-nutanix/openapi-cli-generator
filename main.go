@@ -13,10 +13,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/danielgtaylor/openapi-cli-generator/shorthand"
+	"github.com/ashutosh-mishra-nutanix/openapi-cli-generator/shorthand"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
 )
 
 //go:generate go-bindata ./templates/...
@@ -512,15 +511,79 @@ func getOptionalParams(allParams []*Param) []*Param {
 	return optional
 }
 
+func getPropertiesDesc(propertyList map[string]*openapi3.SchemaRef, prefixName string) string {
+	var propertiesDesc string
+	for propertyName := range propertyList {
+
+		// Skip property descriptions for reserved fields - $reserved, $objectType, $unknownFields
+		if strings.Contains(propertyName, "$") {
+			continue
+		}
+
+		property := propertyList[propertyName]
+
+		log.Printf("prefixName: %s propertyName: %+v, value: %+v\n",
+			prefixName, propertyName, property.Value.Description)
+
+		// Default description string
+		desc := fmt.Sprintf("%s : %s",
+			propertyName,
+			property.Value.Description)
+
+		// Add prefix, if prefix is given
+		if prefixName != "" {
+			desc = fmt.Sprintf("%s.%s", prefixName, desc)
+		}
+
+		// Add Default value, if default value is given
+		if property.Value.Default != nil {
+			desc = fmt.Sprintf("%s Default: %v", desc, property.Value.Default)
+		}
+
+		// Add a prefix space in final description string, and newline in final description string
+		desc = fmt.Sprintf( " %s\n", desc)
+		propertiesDesc += desc
+
+		var objectDesc string
+		// For property of object type, recursively add object fields
+		// pass updatedPrefixName as current propertyName
+		if property.Value.Type == "object" {
+			updatedPrefixName := ""
+			if prefixName != "" {
+				updatedPrefixName = fmt.Sprintf("    %s.%s", prefixName, propertyName)
+			} else {
+				updatedPrefixName = fmt.Sprintf("    %s", propertyName)
+			}
+			if len(property.Value.AllOf) > 0 {
+				objectDesc = getAllOfPropertiesDesc(property.Value.AllOf, updatedPrefixName)
+			}
+			objectDesc = getPropertiesDesc(property.Value.Properties, updatedPrefixName)
+		}
+		propertiesDesc += objectDesc
+	}
+	log.Printf("FINAL prefixName: %s, propertyDesc: %s ", prefixName, propertiesDesc)
+	return propertiesDesc
+}
+
+func getAllOfPropertiesDesc(schemas []*openapi3.SchemaRef, prefixName string) string {
+	var allOfPropertiesDesc string
+	for _, schema := range schemas {
+		allOfPropertiesDesc += getPropertiesDesc(schema.Value.Properties, prefixName)
+	}
+	return allOfPropertiesDesc
+}
+
 func getRequestInfo(op *openapi3.Operation) (string, string, []interface{}) {
 	mts := make(map[string][]interface{})
 
+	var schemaDescription string
 	if op.RequestBody != nil && op.RequestBody.Value != nil {
 		for mt, item := range op.RequestBody.Value.Content {
 			var schema string
 			var examples []interface{}
 
 			if item.Schema != nil && item.Schema.Value != nil {
+				/*
 				// Let's make this a bit more concise. Since it has special JSON
 				// marshalling functions, we do a dance to get it into plain JSON before
 				// converting to YAML.
@@ -536,7 +599,14 @@ func getRequestInfo(op *openapi3.Operation) (string, string, []interface{}) {
 				if err == nil {
 					schema = string(data)
 				}
+				*/
+
+				schemaDescription += getPropertiesDesc(item.Schema.Value.Properties, "")
+
+				schemaDescription += getAllOfPropertiesDesc(item.Schema.Value.AllOf, "")
+
 			}
+			schema = schemaDescription
 
 			if item.Example != nil {
 				examples = append(examples, item.Example)

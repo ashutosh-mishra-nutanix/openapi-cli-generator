@@ -1,4 +1,4 @@
-module github.com/danielgtaylor/openapi-cli-generator
+module github.com/ashutosh-mishra-nutanix/openapi-cli-generator
 
 go 1.12
 
@@ -9,6 +9,7 @@ require (
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/danielgtaylor/go-jmespath-plus v0.0.0-20200228063638-e0b6f132acba
+	github.com/danielgtaylor/openapi-cli-generator v0.0.0-20200904035210-47cad525a9e0
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/dlclark/regexp2 v1.1.6 // indirect
 	github.com/getkin/kin-openapi v0.0.0-20190303141616-e6aa6352832d

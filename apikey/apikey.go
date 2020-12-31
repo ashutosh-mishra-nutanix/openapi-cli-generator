@@ -6,7 +6,7 @@ package apikey
 import (
 	"net/http"
 
-	"github.com/danielgtaylor/openapi-cli-generator/cli"
+	"github.com/ashutosh-mishra-nutanix/openapi-cli-generator/cli"
 	"github.com/rs/zerolog"
 )
 
